@@ -174,7 +174,7 @@ public class World extends JPanel{
 			}
 		}
 		if (mouse == 0) {//выбрать
-			canvas.setColor(new Color(255, 255, 0, 128));
+			canvas.setColor(new Color(255, 200, 0, 128));
 		}else if (mouse == 1) {//поставить
 			canvas.setColor(new Color(0, 255, 0, 128));
 		}else if (mouse == 2) {//сломать
@@ -186,7 +186,9 @@ public class World extends JPanel{
 				canvas.fillRect((mouse_pos[0] - brush / 2) * Constant.scale, (mouse_pos[1] - brush / 2) * Constant.scale, (brush + Math.min(0, Constant.world_scale[0] - (mouse_pos[0] - brush / 2 + brush))) * Constant.scale, brush * Constant.scale);
 			}
 		}else {
-			canvas.fillRect(mouse_pos[0] * Constant.scale, mouse_pos[1] * Constant.scale, Constant.scale, Constant.scale);
+			if (mouse_pos[0] < Constant.world_scale[0]) {
+				canvas.fillRect(mouse_pos[0] * Constant.scale, mouse_pos[1] * Constant.scale, Constant.scale, Constant.scale);
+			}
 		}
 	}
 	private class Listener extends MouseAdapter implements ActionListener{
