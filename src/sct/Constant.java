@@ -10,6 +10,7 @@ public class Constant {
 	//
 	static double visco = 1;
 	static double evaporation = 0;
+	static double max_concentration = 5000;
 	//
 	public static Color gradient(Color color1, Color color2, double grad) {
 		int r = Math.min(Math.max((int)(color1.getRed() * (1 - grad) + color2.getRed() * grad), 0), 255);

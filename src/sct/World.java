@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.event.*;
+import java.io.IOException;
 import java.util.Random;
 import javax.swing.*;
 
@@ -33,6 +34,10 @@ public class World extends JPanel{
 	JButton gas_dr_button = new JButton("Gas");
 	JButton stone_dr_button = new JButton("Stone");
 	JButton source_dr_button = new JButton("Source");
+	JButton pressure_dr_button = new JButton("Pressure");
+	JSlider max_concentration_slider = new JSlider(0, 10000, (int)Constant.max_concentration);
+	JTextField visco_field = new JTextField();
+	JTextField evaporation_field = new JTextField();
 	//
 	Font font = new Font("arial", Font.BOLD, 18);
 	//
@@ -129,24 +134,57 @@ public class World extends JPanel{
         add(draw_label);
         //
         stand_dr_button.addActionListener(e -> change_draw_type(0));
-        stand_dr_button.setBounds(Constant.W - 300, 295, 125, 20);
+        stand_dr_button.setBounds(Constant.W - 300, 295, 95, 20);
         stand_dr_button.setEnabled(true);
 		add(stand_dr_button);
 		//
 		gas_dr_button.addActionListener(e -> change_draw_type(1));
-		gas_dr_button.setBounds(Constant.W - 170, 295, 125, 20);
+		gas_dr_button.setBounds(Constant.W - 200, 295, 95, 20);
 		gas_dr_button.setEnabled(true);
 		add(gas_dr_button);
 		//
 		stone_dr_button.addActionListener(e -> change_draw_type(2));
-		stone_dr_button.setBounds(Constant.W - 300, 320, 125, 20);
+		stone_dr_button.setBounds(Constant.W - 100, 295, 95, 20);
 		stone_dr_button.setEnabled(true);
 		add(stone_dr_button);
 		//
 		source_dr_button.addActionListener(e -> change_draw_type(3));
-		source_dr_button.setBounds(Constant.W - 170, 320, 125, 20);
+		source_dr_button.setBounds(Constant.W - 300, 320, 95, 20);
 		source_dr_button.setEnabled(true);
 		add(source_dr_button);
+		//
+		pressure_dr_button.addActionListener(e -> change_draw_type(4));
+		pressure_dr_button.setBounds(Constant.W - 200, 320, 95, 20);
+		pressure_dr_button.setEnabled(true);
+		add(pressure_dr_button);
+		//
+		JLabel max_conc_label = new JLabel("Maximum concentration:");
+		max_conc_label.setBounds(Constant.W - 300, 340, 300, 20);
+		max_conc_label.setFont(font);
+        add(max_conc_label);
+        //
+        max_concentration_slider.setBounds(Constant.W - 300, 360, 250, 40);
+        max_concentration_slider.setPaintLabels(true);
+        max_concentration_slider.setMajorTickSpacing(1500);
+		add(max_concentration_slider);
+		//
+		JLabel visco_label = new JLabel("Viscosity:");
+		visco_label.setBounds(Constant.W - 300, 400, 300, 20);
+		visco_label.setFont(font);
+        add(visco_label);
+        //
+        visco_field.setText(String.valueOf(Constant.visco));
+        visco_field.setBounds(Constant.W - 300, 420, 250, 20);
+        add(visco_field);
+        //
+        JLabel eva_label = new JLabel("Evaporation:");
+        eva_label.setBounds(Constant.W - 300, 440, 300, 20);
+        eva_label.setFont(font);
+        add(eva_label);
+        //
+        evaporation_field.setText(String.valueOf(Constant.evaporation));
+        evaporation_field.setBounds(Constant.W - 300, 460, 250, 20);
+        add(evaporation_field);
 		//
 		timer.start();
 	}
@@ -211,6 +249,15 @@ public class World extends JPanel{
 			mouse_pos[1] = e.getY() / Constant.scale;
 		}
 		public void actionPerformed(ActionEvent e) {
+			//
+			try{
+				Constant.max_concentration = max_concentration_slider.getValue();
+				Constant.visco = Double.parseDouble(visco_field.getText());
+				Constant.evaporation = Double.parseDouble(evaporation_field.getText());
+			}catch(Throwable ex) {
+				//
+			}
+			//
 			if (!pause) {
 				gas(w[0]);
 				//
