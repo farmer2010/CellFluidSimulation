@@ -16,8 +16,10 @@ public class World extends JPanel{
 	int mouse_obj = 0;
 	boolean pause = false;
 	int[] mouse_pos = new int[2];//0 - газ, 1 - твердое
+	double count = 0;
 	//
 	double[][][] w = new double[3][Constant.world_scale[0]][Constant.world_scale[1]];
+	double[][][] w_speed = new double[2][Constant.world_scale[0]][Constant.world_scale[1]];
 	//
 	JButton stop_button = new JButton("Stop");
 	JButton select_button = new JButton("Select");
@@ -196,17 +198,19 @@ public class World extends JPanel{
 		for (int x = 0; x < Constant.world_scale[0]; x++) {
 			for (int y = 0; y < Constant.world_scale[1]; y++) {
 				if (draw_type == 0) {//смешанный
-					if (w[2][x][y] > 0) {
-						canvas.setColor(Constant.gradient(new Color(100, 0, 255), new Color(255, 0, 255), w[2][x][y] / 5000.0));
+					if (w[1][x][y] >= Constant.max_concentration) {
+						canvas.setColor(new Color(143, 93, 54));
+					}else if (w[2][x][y] > 0) {
+						canvas.setColor(Constant.gradient(new Color(100, 0, 255), new Color(255, 0, 255), w[2][x][y] / Constant.max_concentration));
 					}else {
-						canvas.setColor(Constant.gradient(new Color(255, 255, 255), new Color(0, 0, 255), w[0][x][y] / 5000.0));
+						canvas.setColor(Constant.gradient(new Color(255, 255, 255), new Color(0, 0, 255), w[0][x][y] / Constant.max_concentration));
 					}
 				}else if (draw_type == 1) {//газ
-					canvas.setColor(Constant.gradient(new Color(255, 255, 255), new Color(0, 0, 255), w[0][x][y] / 5000.0));
+					canvas.setColor(Constant.gradient(new Color(255, 255, 255), new Color(0, 0, 255), w[0][x][y] / Constant.max_concentration));
 				}else if (draw_type == 2) {//камень
-					canvas.setColor(Constant.gradient(new Color(255, 255, 255), new Color(143, 93, 54), w[1][x][y] / 5000.0));
+					canvas.setColor(Constant.gradient(new Color(255, 255, 255), new Color(143, 93, 54), w[1][x][y] / Constant.max_concentration));
 				}else if (draw_type == 3) {//источники
-					canvas.setColor(Constant.gradient(new Color(255, 255, 255), new Color(0, 0, 255), w[2][x][y] / 5000.0));
+					canvas.setColor(Constant.gradient(new Color(255, 255, 255), new Color(0, 0, 255), w[2][x][y] / Constant.max_concentration));
 				}
 				canvas.fillRect(x * Constant.scale, y * Constant.scale, Constant.scale, Constant.scale);
 			}
@@ -226,6 +230,8 @@ public class World extends JPanel{
 		}else {
 			if (mouse_pos[0] < Constant.world_scale[0]) {
 				canvas.fillRect(mouse_pos[0] * Constant.scale, mouse_pos[1] * Constant.scale, Constant.scale, Constant.scale);
+				canvas.setColor(new Color(255, 0, 0));
+				canvas.drawString(String.valueOf(w[0][mouse_pos[0]][mouse_pos[1]]), mouse_pos[0] * Constant.scale, mouse_pos[1] * Constant.scale);
 			}
 		}
 	}
@@ -259,7 +265,7 @@ public class World extends JPanel{
 			}
 			//
 			if (!pause) {
-				gas(w[0]);
+				gas(w[0], w_speed);
 				//
 				for (int x = 0; x < Constant.world_scale[0]; x++) {
 					for (int y = 0; y < Constant.world_scale[1]; y++) {
@@ -294,32 +300,26 @@ public class World extends JPanel{
 	//
 	//СИМУЛЯЦИЯ
 	//
-	public static void gas(double[][] gas_map) {//распространение газа
+	public static void gas(double[][] gas_map, double[][][] speed_map) {//распространение газа
 		double[][] new_map = new double[Constant.world_scale[0]][Constant.world_scale[1]];
 		for (int x = 0; x < Constant.world_scale[0]; x++) {
 			for (int y = 0; y < Constant.world_scale[1]; y++) {
-				gas_map[x][y] -= gas_map[x][y] * Constant.evaporation;//испарение
-				double g = gas_map[x][y] * Constant.visco;
-				double ox = g / 9;
-				new_map[x][y] += gas_map[x][y] - g + ox;
-				int count = 0;
+				new_map[x][y] += gas_map[x][y] * Constant.visco / 9;
+				new_map[x][y] += gas_map[x][y] * (1 - Constant.visco);
 				for (int i = 0; i < 8; i++) {
 					int[] f = {x, y};
 					int[] pos = Constant.get_rotate_position(i, f);
 					if (pos[1] >= 0 && pos[1] < Constant.world_scale[1]) {
-						new_map[pos[0]][pos[1]] += ox;
+						new_map[x][y] += gas_map[pos[0]][pos[1]] * Constant.visco / 9;
 					}else {
-						count++;
+						new_map[x][y] += gas_map[x][y] * Constant.visco / 9;
 					}
-				}
-				for (int i = 0; i < count; i++) {
-					new_map[x][y] += ox;
 				}
 			}
 		}
 		for (int x = 0; x < Constant.world_scale[0]; x++) {
 			for (int y = 0; y < Constant.world_scale[1]; y++) {
-				gas_map[x][y] = new_map[x][y];
+				gas_map[x][y] = new_map[x][y] * (1 - Constant.evaporation);
 			}
 		}
 	}
