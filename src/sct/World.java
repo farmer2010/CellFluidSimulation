@@ -238,7 +238,7 @@ public class World extends JPanel{
 					for (int i = 0; i < 8; i++) {
 						int cx = x * Constant.scale + Constant.scale/2;
 						int cy = y * Constant.scale + Constant.scale/2;
-						double c = 10;
+						double c = 5;
 						canvas.drawLine(cx, cy, (int)(cx + Constant.scale/2 * w_speed[i][x][y] * Constant.movelist[i][0] * c), (int)(cy + Constant.scale/2 * w_speed[i][x][y] * Constant.movelist[i][1] * c));
 					}
 				}
@@ -300,7 +300,7 @@ public class World extends JPanel{
 		}
 	}
 	public void step() {
-		//diffusion(w);
+		diffusion(w);
 		fluid(w, w_speed);
 		//
 		for (int x = 0; x < Constant.world_scale[0]; x++) {
@@ -359,21 +359,21 @@ public class World extends JPanel{
 	}
 	public static void fluid(double[][][] w_map, double[][][] speed_map) {
 		double[][] new_map = new double[Constant.world_scale[0]][Constant.world_scale[1]];
-		for (int x = 0; x < Constant.world_scale[0]; x++) {
+		for (int x = 0; x < Constant.world_scale[0]; x++) {//первый проход - выставляем скорости в зависимости от разницы уровней
 			for (int y = 0; y < Constant.world_scale[1]; y++) {
 				double sum = 0;
 				for (int i = 0; i < 8; i++) {
 					int[] pos = Constant.get_rotate_position(i, new int[] {x, y});
 					if (pos[1] >= 0 && pos[1] < Constant.world_scale[1]) {
 						if (w_map[0][x][y] > w_map[0][pos[0]][pos[1]]) {
-							speed_map[i][x][y] = Math.max(speed_map[i][x][y], (w_map[0][x][y] - w_map[0][pos[0]][pos[1]]) / Constant.max_concentration);
-						}else {
-							speed_map[i][x][y] *= 0.8;
+							speed_map[i][x][y] = Math.max(speed_map[i][x][y], (w_map[0][x][y] - w_map[0][pos[0]][pos[1]]) / Constant.max_concentration);//если на соседней клетке меньше, то увеличиваем вектор скорости
+						}else {//																														  но если текущая скорость больше, то не увеличиваем
+							speed_map[i][x][y] *= 0.8;//если на соедней клетке вещества больше, уменьшаем вектор скорости на 20%
 						}
 						sum += speed_map[i][x][y];
 					}
 				}
-				if (sum > 0.8888) {
+				if (sum > 0.8888) {//масштабируем скорость, если сумма скоростей слишком большая
 					for (int i = 0; i < 8; i++) {
 						speed_map[i][x][y] = speed_map[i][x][y] * (0.8888 / sum);
 					}
@@ -381,24 +381,35 @@ public class World extends JPanel{
 			}
 		}
 		//
-		for (int x = 0; x < Constant.world_scale[0]; x++) {
+		double[][][] new_speed_map = new double[8][Constant.world_scale[0]][Constant.world_scale[1]];
+		for (int x = 0; x < Constant.world_scale[0]; x++) {//второй проход - сдвигаем вещество
 			for (int y = 0; y < Constant.world_scale[1]; y++) {
 				double start = w_map[0][x][y];
 				for (int i = 0; i < 8; i++) {
+					new_speed_map[i][x][y] += speed_map[i][x][y];
 					int[] pos = Constant.get_rotate_position(i, new int[] {x, y});
 					if (pos[1] >= 0 && pos[1] < Constant.world_scale[1]) {
-						new_map[pos[0]][pos[1]] += start * speed_map[i][x][y];
-						speed_map[(i + 4) % 8][pos[0]][pos[1]] += start * speed_map[i][x][y] / Constant.max_concentration * 0.9;
-						w_map[0][x][y] -= start * speed_map[i][x][y];
+						if (i % 2 == 0) {
+							new_map[pos[0]][pos[1]] += start * speed_map[i][x][y];//добавляем вещество на соседнюю клетку
+							new_speed_map[i][pos[0]][pos[1]] += start * speed_map[i][x][y] / Constant.max_concentration * 0.9;//увеличиваем на соседней клетке вектор скорости(импульс), уменьшенный на 10%
+							w_map[0][x][y] -= start * speed_map[i][x][y];//уменьшаем вещество на клетке
+						}else {
+							new_map[pos[0]][pos[1]] += start * speed_map[i][x][y] / 1.41;//добавляем вещество на соседнюю клетку
+							new_speed_map[i][pos[0]][pos[1]] += start * speed_map[i][x][y] * 0.9 / Constant.max_concentration / 1.41;//увеличиваем на соседней клетке вектор скорости(импульс), уменьшенный на 10%
+							w_map[0][x][y] -= start * speed_map[i][x][y] / 1.41;//уменьшаем вещество на клетке
+						}
 					}
 				}
-				new_map[x][y] += w_map[0][x][y];
+				new_map[x][y] += w_map[0][x][y];//вещество, которое не переместилось
 			}
 		}
 		//
 		for (int x = 0; x < Constant.world_scale[0]; x++) {
 			for (int y = 0; y < Constant.world_scale[1]; y++) {
 				w_map[0][x][y] = new_map[x][y];
+				for (int i = 0; i < 8; i++) {
+					speed_map[i][x][y] = new_speed_map[i][x][y];
+				}
 			}
 		}
 	}
