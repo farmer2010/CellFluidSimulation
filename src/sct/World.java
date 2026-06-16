@@ -196,7 +196,8 @@ public class World extends JPanel{
 		//
 		timer.start();
 		//
-		/*for (int x = 0; x < Constant.world_scale[0]; x++) {
+		/*
+		for (int x = 0; x < Constant.world_scale[0]; x++) {
 			for (int y = 0; y < Constant.world_scale[1]; y++) {
 				w[0][x][y] = 3000;
 				for (int i = 0; i < 8; i++) {
@@ -389,7 +390,7 @@ public class World extends JPanel{
 					new_speed_map[i][x][y] += speed_map[i][x][y];
 					int[] pos = Constant.get_rotate_position(i, new int[] {x, y});
 					if (pos[1] >= 0 && pos[1] < Constant.world_scale[1]) {
-						if (i % 2 == 0) {
+						if (i % 2 == 0 || true) {
 							new_map[pos[0]][pos[1]] += start * speed_map[i][x][y];//добавляем вещество на соседнюю клетку
 							new_speed_map[i][pos[0]][pos[1]] += start * speed_map[i][x][y] / Constant.max_concentration * 0.9;//увеличиваем на соседней клетке вектор скорости(импульс), уменьшенный на 10%
 							w_map[0][x][y] -= start * speed_map[i][x][y];//уменьшаем вещество на клетке

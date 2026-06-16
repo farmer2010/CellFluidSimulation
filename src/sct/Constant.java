@@ -8,7 +8,7 @@ public class Constant {
 	static int scale = 10;
 	static int[] world_scale = {(W - 300) / scale, H / scale};
 	//
-	static double visco = 1;
+	static double visco = 0.2;
 	static double evaporation = 0;
 	static double max_concentration = 5000;
 	//
