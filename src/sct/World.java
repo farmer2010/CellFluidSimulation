@@ -19,7 +19,7 @@ public class World extends JPanel{
 	double count = 0;
 	//
 	double[][][] w = new double[3][Constant.world_scale[0]][Constant.world_scale[1]];
-	double[][][] w_speed = new double[2][Constant.world_scale[0]][Constant.world_scale[1]];
+	double[][][] w_speed = new double[8][Constant.world_scale[0]][Constant.world_scale[1]];
 	//
 	JButton stop_button = new JButton("Stop");
 	JButton select_button = new JButton("Select");
@@ -51,9 +51,15 @@ public class World extends JPanel{
 		addMouseMotionListener(new Listener());
 		//
 		stop_button.addActionListener(e -> start_stop());
-		stop_button.setBounds(Constant.W - 300, 0, 250, 35);
+		stop_button.setBounds(Constant.W - 300, 0, 125, 35);
 		stop_button.setEnabled(true);
 		add(stop_button);
+		//
+		JButton step_button = new JButton("One step");
+		step_button.addActionListener(e -> step());
+		step_button.setBounds(Constant.W - 170, 0, 125, 35);
+		step_button.setEnabled(true);
+		add(step_button);
         //
 		JLabel mouse_label = new JLabel("Mouse function:");
 		mouse_label.setBounds(Constant.W - 300, 35, 300, 20);
@@ -213,6 +219,16 @@ public class World extends JPanel{
 					canvas.setColor(Constant.gradient(new Color(255, 255, 255), new Color(0, 0, 255), w[2][x][y] / Constant.max_concentration));
 				}
 				canvas.fillRect(x * Constant.scale, y * Constant.scale, Constant.scale, Constant.scale);
+				//
+				if (draw_type == 1) {
+					canvas.setColor(new Color(0, 0, 0));
+					for (int i = 0; i < 8; i++) {
+						int cx = x * Constant.scale + Constant.scale/2;
+						int cy = y * Constant.scale + Constant.scale/2;
+						double c = 50;
+						canvas.drawLine(cx, cy, (int)(cx + Constant.scale/2 * w_speed[i][x][y] * Constant.movelist[i][0] * c), (int)(cy + Constant.scale/2 * w_speed[i][x][y] * Constant.movelist[i][1] * c));
+					}
+				}
 			}
 		}
 		if (mouse == 0) {//выбрать
@@ -265,24 +281,26 @@ public class World extends JPanel{
 			}
 			//
 			if (!pause) {
-				gas(w[0]);
-				//
-				for (int x = 0; x < Constant.world_scale[0]; x++) {
-					for (int y = 0; y < Constant.world_scale[1]; y++) {
-						if (w[2][x][y] > 0){
-							w[0][x][y] = w[2][x][y];
-						}
-					}
-				}
+				step();
 			}
 			repaint();
 		}
 	}
+	public void step() {
+		//diffusion(w);
+		fluid(w, w_speed);
+		//
+		for (int x = 0; x < Constant.world_scale[0]; x++) {
+			for (int y = 0; y < Constant.world_scale[1]; y++) {
+				if (w[2][x][y] > 0){
+					w[0][x][y] = w[2][x][y];
+				}
+			}
+		}
+	}
 	public void mouse_function() {
 		int brush = brush_slider.getValue();
-		if (mouse == 0) {//выбрать
-			//TODO
-		}else {
+		if (mouse != 0) {
 			for (int x = 0; x < brush; x++) {
 				for (int y = 0; y < brush; y++) {
 					int[] pos = {mouse_pos[0] + x - brush / 2, mouse_pos[1] + y - brush / 2};
@@ -300,78 +318,67 @@ public class World extends JPanel{
 	//
 	//СИМУЛЯЦИЯ
 	//
-	/*
-	public static void gas(double[][] gas_map) {//распространение газа
+	public static void diffusion(double[][][] w_map) {//распространение газа
 		double[][] new_map = new double[Constant.world_scale[0]][Constant.world_scale[1]];
 		for (int x = 0; x < Constant.world_scale[0]; x++) {
 			for (int y = 0; y < Constant.world_scale[1]; y++) {
-				new_map[x][y] += gas_map[x][y] * Constant.visco / 9;
-				new_map[x][y] += gas_map[x][y] * (1 - Constant.visco);
-				for (int i = 0; i < 8; i++) {
-					int[] pos = Constant.get_rotate_position(i, new int[] {x, y});
-					if (!(pos[1] >= 0 && pos[1] < Constant.world_scale[1])) {
-						new_map[x][y] += gas_map[x][y] * Constant.visco / 9;
-					}
-				}
-			}
-		}
-		for (int x = 0; x < Constant.world_scale[0]; x++) {
-			for (int y = 0; y < Constant.world_scale[1]; y++) {
-				double[] oxs = {0, 0, 0, 0, 0, 0, 0, 0};
-				double sum = 0;
-				for (int i = 0; i < 8; i++) {
-					int[] pos = Constant.get_rotate_position(i, new int[] {x, y});
-					if (pos[1] >= 0 && pos[1] < Constant.world_scale[1]) {
-						sum += gas_map[pos[0]][pos[1]] * Constant.visco / 9;
-						oxs[i] = gas_map[pos[0]][pos[1]] * Constant.visco / 9;
-					}
-				}
-				double coeff = 1;
-				if (new_map[x][y] + sum <= Constant.max_concentration) {
-					new_map[x][y] += sum;
-				}else {
-					double r = Constant.max_concentration - new_map[x][y];
-					if (r > 0) {
-						coeff = r / sum;
-					}
-				}
-				for (int i = 0; i < 8; i++) {
-					int[] pos = Constant.get_rotate_position(i, new int[] {x, y});
-					if (pos[1] >= 0 && pos[1] < Constant.world_scale[1]) {
-						new_map[x][y] += oxs[i] * coeff;
-					}
-				}
-			}
-		}
-		for (int x = 0; x < Constant.world_scale[0]; x++) {
-			for (int y = 0; y < Constant.world_scale[1]; y++) {
-				gas_map[x][y] = new_map[x][y] * (1 - Constant.evaporation);
-			}
-		}
-	}
-	*/
-	public static void gas(double[][] gas_map) {//распространение газа
-		double[][] new_map = new double[Constant.world_scale[0]][Constant.world_scale[1]];
-		for (int x = 0; x < Constant.world_scale[0]; x++) {
-			for (int y = 0; y < Constant.world_scale[1]; y++) {
-				gas_map[x][y] -= gas_map[x][y] * Constant.evaporation;//испарение
-				double g = gas_map[x][y] * Constant.visco;
+				w_map[0][x][y] -= w_map[0][x][y] * Constant.evaporation;//испарение
+				double g = w_map[0][x][y] * Constant.visco;
 				double ox = g / 9;
-				new_map[x][y] += gas_map[x][y] - g + ox;
+				new_map[x][y] += w_map[0][x][y] - g + ox;
 				for (int i = 0; i < 8; i++) {
 					int[] pos = Constant.get_rotate_position(i, new int[] {x, y});
-					if (pos[1] >= 0 && pos[1] < Constant.world_scale[1] && gas_map[pos[0]][pos[1]] < Constant.max_concentration) {
-						new_map[pos[0]][pos[1]] += Math.min(ox, (Constant.max_concentration - gas_map[pos[0]][pos[1]]) / 9);
-						new_map[x][y] += ox - Math.min(ox, (Constant.max_concentration - gas_map[pos[0]][pos[1]]) / 9);
+					if (pos[1] >= 0 && pos[1] < Constant.world_scale[1] && w_map[0][pos[0]][pos[1]] + w_map[1][pos[0]][pos[1]] < Constant.max_concentration) {
+						new_map[pos[0]][pos[1]] += Math.min(ox, (Constant.max_concentration - w_map[0][pos[0]][pos[1]] - w_map[1][pos[0]][pos[1]]) / 9);
+						new_map[x][y] += ox - Math.min(ox, (Constant.max_concentration - w_map[0][pos[0]][pos[1]] - w_map[1][pos[0]][pos[1]]) / 9);
 					}else {
 						new_map[x][y] += ox;
 					}
 				}
 			}
 		}
+		//
 		for (int x = 0; x < Constant.world_scale[0]; x++) {
 			for (int y = 0; y < Constant.world_scale[1]; y++) {
-				gas_map[x][y] = new_map[x][y];
+				w_map[0][x][y] = new_map[x][y];
+			}
+		}
+	}
+	public static void fluid(double[][][] w_map, double[][][] speed_map) {
+		double[][] new_map = new double[Constant.world_scale[0]][Constant.world_scale[1]];
+		for (int x = 0; x < Constant.world_scale[0]; x++) {
+			for (int y = 0; y < Constant.world_scale[1]; y++) {
+				for (int i = 0; i < 8; i++) {
+					int[] pos = Constant.get_rotate_position(i, new int[] {x, y});
+					if (pos[1] >= 0 && pos[1] < Constant.world_scale[1]) {
+						if (w_map[0][x][y] > w_map[0][pos[0]][pos[1]]) {
+							speed_map[i][x][y] = Math.min(0.11, (w_map[0][x][y] - w_map[0][pos[0]][pos[1]]) / Constant.max_concentration);
+						}else {
+							speed_map[i][x][y] = 0;
+						}
+					}
+				}
+			}
+		}
+		//
+		for (int x = 0; x < Constant.world_scale[0]; x++) {
+			for (int y = 0; y < Constant.world_scale[1]; y++) {
+				double start = w_map[0][x][y];
+				for (int i = 0; i < 8; i++) {
+					int[] pos = Constant.get_rotate_position(i, new int[] {x, y});
+					if (pos[1] >= 0 && pos[1] < Constant.world_scale[1]) {
+						new_map[pos[0]][pos[1]] += start * speed_map[i][x][y];
+						//speed_map[(i + 4) % 8][pos[0]][pos[1]] += start * speed_map[i][x][y] / Constant.max_concentration;
+						w_map[0][x][y] -= start * speed_map[i][x][y];
+					}
+				}
+				new_map[x][y] += w_map[0][x][y];
+			}
+		}
+		//
+		for (int x = 0; x < Constant.world_scale[0]; x++) {
+			for (int y = 0; y < Constant.world_scale[1]; y++) {
+				w_map[0][x][y] = new_map[x][y];
 			}
 		}
 	}
@@ -394,8 +401,10 @@ public class World extends JPanel{
 	}
 	public void clear_world() {
 		w = new double[3][Constant.world_scale[0]][Constant.world_scale[1]];
+		w_speed = new double[8][Constant.world_scale[0]][Constant.world_scale[1]];
 	}
 	public void clear_gas() {
+		w_speed = new double[8][Constant.world_scale[0]][Constant.world_scale[1]];
 		for (int x = 0; x < Constant.world_scale[0]; x++) {
 			for (int y = 0; y < Constant.world_scale[1]; y++) {
 				w[0][x][y] = 0;
