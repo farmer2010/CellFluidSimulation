@@ -356,9 +356,9 @@ public class World extends JPanel{
 					int[] pos = Constant.get_rotate_position(i, new int[] {x, y});
 					if (pos[1] >= 0 && pos[1] < Constant.world_scale[1]) {
 						if (w_map[0][x][y] > w_map[0][pos[0]][pos[1]]) {
-							speed_map[i][x][y] = (w_map[0][x][y] - w_map[0][pos[0]][pos[1]]) / Constant.max_concentration;
+							speed_map[i][x][y] = Math.max(speed_map[i][x][y], (w_map[0][x][y] - w_map[0][pos[0]][pos[1]]) / Constant.max_concentration);
 						}else {
-							speed_map[i][x][y] = 0;
+							//speed_map[i][x][y] = 0;
 						}
 						sum += speed_map[i][x][y];
 					}
@@ -378,7 +378,7 @@ public class World extends JPanel{
 					int[] pos = Constant.get_rotate_position(i, new int[] {x, y});
 					if (pos[1] >= 0 && pos[1] < Constant.world_scale[1]) {
 						new_map[pos[0]][pos[1]] += start * speed_map[i][x][y];
-						//speed_map[(i + 4) % 8][pos[0]][pos[1]] += start * speed_map[i][x][y] / Constant.max_concentration;
+						speed_map[(i + 4) % 8][pos[0]][pos[1]] += start * speed_map[i][x][y] / Constant.max_concentration * 0.9;
 						w_map[0][x][y] -= start * speed_map[i][x][y];
 					}
 				}
