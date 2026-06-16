@@ -219,9 +219,12 @@ public class World extends JPanel{
 					canvas.setColor(Constant.gradient(new Color(255, 255, 255), new Color(0, 0, 255), w[2][x][y] / Constant.max_concentration));
 				}
 				canvas.fillRect(x * Constant.scale, y * Constant.scale, Constant.scale, Constant.scale);
-				//
-				if (draw_type == 1) {
-					canvas.setColor(new Color(0, 0, 0));
+			}
+		}
+		if (draw_type == 1) {
+			canvas.setColor(new Color(0, 0, 0));
+			for (int x = 0; x < Constant.world_scale[0]; x++) {
+				for (int y = 0; y < Constant.world_scale[1]; y++) {
 					for (int i = 0; i < 8; i++) {
 						int cx = x * Constant.scale + Constant.scale/2;
 						int cy = y * Constant.scale + Constant.scale/2;
@@ -348,14 +351,21 @@ public class World extends JPanel{
 		double[][] new_map = new double[Constant.world_scale[0]][Constant.world_scale[1]];
 		for (int x = 0; x < Constant.world_scale[0]; x++) {
 			for (int y = 0; y < Constant.world_scale[1]; y++) {
+				double sum = 0;
 				for (int i = 0; i < 8; i++) {
 					int[] pos = Constant.get_rotate_position(i, new int[] {x, y});
 					if (pos[1] >= 0 && pos[1] < Constant.world_scale[1]) {
 						if (w_map[0][x][y] > w_map[0][pos[0]][pos[1]]) {
-							speed_map[i][x][y] = Math.min(0.11, (w_map[0][x][y] - w_map[0][pos[0]][pos[1]]) / Constant.max_concentration);
+							speed_map[i][x][y] = (w_map[0][x][y] - w_map[0][pos[0]][pos[1]]) / Constant.max_concentration;
 						}else {
 							speed_map[i][x][y] = 0;
 						}
+						sum += speed_map[i][x][y];
+					}
+				}
+				if (sum > 0.8888) {
+					for (int i = 0; i < 8; i++) {
+						speed_map[i][x][y] = speed_map[i][x][y] * (0.8888 / sum);
 					}
 				}
 			}
