@@ -358,7 +358,7 @@ public class World extends JPanel{
 						if (w_map[0][x][y] > w_map[0][pos[0]][pos[1]]) {
 							speed_map[i][x][y] = Math.max(speed_map[i][x][y], (w_map[0][x][y] - w_map[0][pos[0]][pos[1]]) / Constant.max_concentration);
 						}else {
-							//speed_map[i][x][y] = 0;
+							speed_map[i][x][y] *= 0.8;
 						}
 						sum += speed_map[i][x][y];
 					}
