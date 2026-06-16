@@ -195,6 +195,16 @@ public class World extends JPanel{
         add(evaporation_field);
 		//
 		timer.start();
+		//
+		/*for (int x = 0; x < Constant.world_scale[0]; x++) {
+			for (int y = 0; y < Constant.world_scale[1]; y++) {
+				w[0][x][y] = 3000;
+				for (int i = 0; i < 8; i++) {
+					w_speed[i][x][y] = rand.nextDouble(0, 0.7);
+				}
+			}
+		}
+		*/
 	}
 	public void paintComponent(Graphics canvas) {
 		super.paintComponent(canvas);
@@ -228,7 +238,7 @@ public class World extends JPanel{
 					for (int i = 0; i < 8; i++) {
 						int cx = x * Constant.scale + Constant.scale/2;
 						int cy = y * Constant.scale + Constant.scale/2;
-						double c = 50;
+						double c = 10;
 						canvas.drawLine(cx, cy, (int)(cx + Constant.scale/2 * w_speed[i][x][y] * Constant.movelist[i][0] * c), (int)(cy + Constant.scale/2 * w_speed[i][x][y] * Constant.movelist[i][1] * c));
 					}
 				}
