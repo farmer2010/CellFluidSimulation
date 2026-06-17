@@ -308,6 +308,7 @@ public class World extends JPanel{
 			for (int y = 0; y < Constant.world_scale[1]; y++) {
 				if (w[2][x][y] > 0){
 					w[0][x][y] = w[2][x][y];
+					//w_speed[2][x][y] = 1;
 				}
 			}
 		}
@@ -321,6 +322,10 @@ public class World extends JPanel{
 					if (pos[0] >= 0 && pos[0] < Constant.world_scale[0] && pos[1] >= 0 && pos[1] < Constant.world_scale[1]) {
 						if (mouse == 1) {
 							w[mouse_obj][pos[0]][pos[1]] = concentration_slider.getValue();
+							for (int i = 0; i < 8; i++) {
+								w_speed[i][pos[0]][pos[1]] = 0;
+							}
+							//w_speed[2][pos[0]][pos[1]] = 0.4;
 						}else if (mouse == 2) {
 							w[mouse_obj][pos[0]][pos[1]] = 0;
 						}
@@ -369,14 +374,15 @@ public class World extends JPanel{
 						if (w_map[0][x][y] > w_map[0][pos[0]][pos[1]]) {
 							speed_map[i][x][y] = Math.max(speed_map[i][x][y], (w_map[0][x][y] - w_map[0][pos[0]][pos[1]]) / Constant.max_concentration);//если на соседней клетке меньше, то увеличиваем вектор скорости
 						}else {//																														  но если текущая скорость больше, то не увеличиваем
-							speed_map[i][x][y] *= 0.8;//если на соедней клетке вещества больше, уменьшаем вектор скорости на 20%
+							//speed_map[(i + 4) % 8][x][y] += speed_map[i][x][y] * 0.2;
+							//speed_map[i][x][y] *= 1;//если на соедней клетке вещества больше, уменьшаем вектор скорости на 20%
 						}
 						sum += speed_map[i][x][y];
 					}
 				}
-				if (sum > 0.8888) {//масштабируем скорость, если сумма скоростей слишком большая
+				if (sum > 0.88) {//масштабируем скорость, если сумма скоростей слишком большая
 					for (int i = 0; i < 8; i++) {
-						speed_map[i][x][y] = speed_map[i][x][y] * (0.8888 / sum);
+						speed_map[i][x][y] = speed_map[i][x][y] * (0.88 / sum);
 					}
 				}
 			}
@@ -387,18 +393,14 @@ public class World extends JPanel{
 			for (int y = 0; y < Constant.world_scale[1]; y++) {
 				double start = w_map[0][x][y];
 				for (int i = 0; i < 8; i++) {
-					new_speed_map[i][x][y] += speed_map[i][x][y];
+					new_speed_map[i][x][y] += speed_map[i][x][y] * 0.95;
 					int[] pos = Constant.get_rotate_position(i, new int[] {x, y});
 					if (pos[1] >= 0 && pos[1] < Constant.world_scale[1]) {
-						if (i % 2 == 0 || true) {
-							new_map[pos[0]][pos[1]] += start * speed_map[i][x][y];//добавляем вещество на соседнюю клетку
-							new_speed_map[i][pos[0]][pos[1]] += start * speed_map[i][x][y] / Constant.max_concentration * 0.9;//увеличиваем на соседней клетке вектор скорости(импульс), уменьшенный на 10%
-							w_map[0][x][y] -= start * speed_map[i][x][y];//уменьшаем вещество на клетке
-						}else {
-							new_map[pos[0]][pos[1]] += start * speed_map[i][x][y] / 1.41;//добавляем вещество на соседнюю клетку
-							new_speed_map[i][pos[0]][pos[1]] += start * speed_map[i][x][y] * 0.9 / Constant.max_concentration / 1.41;//увеличиваем на соседней клетке вектор скорости(импульс), уменьшенный на 10%
-							w_map[0][x][y] -= start * speed_map[i][x][y] / 1.41;//уменьшаем вещество на клетке
-						}
+						new_map[pos[0]][pos[1]] += start * speed_map[i][x][y];//добавляем вещество на соседнюю клетку
+						new_speed_map[i][pos[0]][pos[1]] += start * speed_map[i][x][y] / Constant.max_concentration * 0.85;//увеличиваем на соседней клетке вектор скорости(импульс), уменьшенный на 10%
+						new_speed_map[(i + 1) % 8][pos[0]][pos[1]] += start * speed_map[i][x][y] / Constant.max_concentration * 0.05;
+						new_speed_map[(i + 7) % 8][pos[0]][pos[1]] += start * speed_map[i][x][y] / Constant.max_concentration * 0.05;
+						w_map[0][x][y] -= start * speed_map[i][x][y];//уменьшаем вещество на клетке
 					}
 				}
 				new_map[x][y] += w_map[0][x][y];//вещество, которое не переместилось
